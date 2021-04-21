@@ -1,10 +1,8 @@
 <template>
-  <div class="input-wrapper" :class="{invalid: error}" v-bind="$attrs">
-    <label :for="id">{{ title }}</label>
-    <textarea v-if="type === 'textarea'" class="input" :id="id" v-model="input" rows="3"></textarea>
-    <select v-else-if="type === 'select'" class="input" :id="id" v-model="input"><slot></slot></select>
-    <input v-else class="input" :id="id" v-model="input" :type="type ?? 'text'">
-    <small class="error">{{ error }}</small>
+  <div class="input-wrapper" :class="{invalid: !!error}">
+    <label :for="id">{{ label }}</label>
+    <input :type="type" v-model="value" :id="id">
+    <div class="error">{{ error }}</div>
   </div>
 </template>
 <script>
@@ -12,17 +10,16 @@ import {computed} from "vue";
 
 export default {
   name: 'BaseInput',
-  inheritAttrs: false,
-  props: ['error', 'value', 'title', 'type'],
+  props: ['type', 'label', 'modelValue', 'error'],
   setup(props, {emit}) {
-    const id = 'input' + (window.id = (window.id ?? 0) + 1);
+    const id = 'input' + (window.id = (window.id ?? 1) + 1);
 
-    const input = computed({
-      get: () => props.value,
-      set: value => emit('update:value', value)
+    const value = computed({
+      get: () => props.modelValue,
+      set: value => emit('update:modelValue', value)
     })
 
-    return {input, id}
+    return {id, value}
   }
 }
 </script>

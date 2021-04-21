@@ -1,71 +1,87 @@
 <template>
-  <header>
-    <div class="container flex aic jcsb">
-      <a href="#" class="btn btn-secondary"
-         v-if="hasBack" @click.prevent="back">Назад</a>
-      <button class="btn btn-secondary mlauto"
-              v-if="logined"
-              @click="logout">Выйти</button>
-    </div>
+  <header class="container flex aic jcsb">
+    <RouterLink :to="{name: 'Tests'}" style="text-decoration: none !important; color: #333333">
+      <h1 class="m0">Test system</h1>
+    </RouterLink>
+    <button class="btn secondary sm" @click="logout">Logout</button>
   </header>
   <main>
-    <BaseLoader>
-      <Component :is="currentPage" @change-page="changePage"/>
-    </BaseLoader>
+    <router-view v-slot="{ Component }">
+      <Suspense timeout="0">
+        <component :is="Component"></component>
+        <template #fallback>
+          <section class="screen flex jcc aic">
+            <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
+          </section>
+        </template>
+      </Suspense>
+    </router-view>
   </main>
 </template>
 
 <script>
-import '@/assets/css/style.css'
-import {ref} from "@vue/reactivity";
-import RegisterPage from "@/pages/RegisterPage"
-import LoginPage from "@/pages/LoginPage";
-import UserTestsPage from "@/pages/UserTestsPage";
-import UserTestPage from "@/pages/UserTestPage";
-import BaseLoader from "@/components/BaseLoader";
-import CreateTestPage from "@/pages/CreateTestPage";
-import TestPage from "@/pages/TestPage";
+import '@/assets/css/all.css';
+import '@/assets/css/style.css';
+import {useRouter} from "vue-router";
+import {onErrorCaptured} from "vue";
 
 export default {
-  name: 'App',
-  components: {
-    RegisterPage,
-    LoginPage,
-    UserTestsPage,
-    UserTestPage,
-    BaseLoader,
-    CreateTestPage,
-    TestPage
-  },
   setup() {
-    const urlParams = new URLSearchParams(location.search);
-    const page = urlParams.get('page') ?? localStorage.page;
-    const currentPage = ref((localStorage.token && page) ? page : 'LoginPage');
-
-    const logined = ref(!!localStorage.token);
-    const hasBack = ref(!!JSON.parse(localStorage.params)?.back);
-
-    function changePage(page, params = {}) {
-      localStorage.params = JSON.stringify(params);
-      hasBack.value = !!params.back;
-      localStorage.page = page;
-      logined.value = !!localStorage.token;
-      currentPage.value = page;
-    }
+    const router = useRouter();
 
     function logout() {
       localStorage.clear();
-      logined.value = false;
-      changePage('LoginPage');
+      router.push({name: 'Login'})
     }
 
+    onErrorCaptured(err => {
+      if (err.message === 'Unauthorized') {
+        router.push({name: 'Login'});
+        return false;
+      }
+      return true;
+    })
 
-    function back() {
-      const {back: {page, params}} = JSON.parse(localStorage.params);
-      changePage(page, params);
-    }
-
-    return {currentPage, changePage, logout, logined, back, hasBack}
+    return {logout}
   }
 }
 </script>
+
+<style scoped>
+.lds-ring {
+  display: inline-block;
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+.lds-ring div {
+  box-sizing: border-box;
+  display: block;
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  margin: 8px;
+  border: 8px solid #fff;
+  border-radius: 50%;
+  animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  border-color: #fff transparent transparent transparent;
+}
+.lds-ring div:nth-child(1) {
+  animation-delay: -0.45s;
+}
+.lds-ring div:nth-child(2) {
+  animation-delay: -0.3s;
+}
+.lds-ring div:nth-child(3) {
+  animation-delay: -0.15s;
+}
+@keyframes lds-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+</style>

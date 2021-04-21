@@ -1,4 +1,4 @@
-# m2
+# test-system
 
 ## Project setup
 ```

@@ -1,1 +1,0 @@
-export const testLink = uuid => `${location.origin}?uuid=${uuid}&page=TestPage`

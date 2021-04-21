@@ -22,9 +22,11 @@ export const apiRequest = (path, method = 'GET', body = null, headers = {}) => {
         body: body ? JSON.stringify(body) : null
     })
 }
-
-export const httpApi = (path, method = 'GET', body = null, enableAuth = false) =>
-    http(apiRequest(path, method, body, enableAuth ? {'Authorization': `Bearer ${localStorage.token}`} : {}))
+export const httpApi = async (path, method = 'GET', body = null) => {
+    const res = await http(apiRequest(path, method, body, {'Authorization': `Bearer ${localStorage.token}`}))
+    if (res.code === 401) throw new Error('Unauthorized')
+    return res;
+}
 
 const addEntry = (obj, value, items, index = 0) => {
     const key = items[index];
